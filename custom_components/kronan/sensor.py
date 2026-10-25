@@ -99,9 +99,12 @@ class _CartSensor(KronanEntity, SensorEntity):
             "needed_for_free_shipping": max(0, cutoff - subtotal) if cutoff else None,
             "lines": [
                 {
+                    "sku": (line.get("product") or {}).get("sku"),
                     "name": (line.get("product") or {}).get("name"),
                     "quantity": line.get("quantity"),
+                    "price": line.get("price"),
                     "total": line.get("total"),
+                    "thumbnail": (line.get("product") or {}).get("thumbnail"),
                 }
                 for line in (checkout.get("lines") or [])[:MAX_ATTRIBUTE_LINES]
             ],

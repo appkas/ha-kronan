@@ -108,6 +108,16 @@ class KronanApiClient:
         """The active checkout (the cart)."""
         return self._first(await self._request("GET", "/api/v1/checkout/"))
 
+    async def get_order(self, token: str) -> dict[str, Any]:
+        """One order with its lines (name, quantity, price, thumbnail)."""
+        return await self._request("GET", f"/api/v1/orders/{token}/")
+
+    async def replace_checkout_lines(self, lines: list[dict[str, Any]]) -> dict[str, Any] | None:
+        """Set the whole cart to `lines`. The API's `replace` defaults to true, so it is always sent."""
+        return await self._request(
+            "POST", "/api/v1/checkout/lines/", json={"lines": lines, "replace": True}
+        )
+
     async def get_shopping_note(self) -> dict[str, Any] | None:
         """The shopping note (shopping list)."""
         return self._first(await self._request("GET", "/api/v1/shopping-notes/"))

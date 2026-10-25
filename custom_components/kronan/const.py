@@ -16,3 +16,6 @@ CLOSED_ORDER_STATUSES: Final = frozenset({"canceled", "cloned", "draft"})
 
 # Keep entity attributes well under Home Assistant's recorder limit.
 MAX_ATTRIBUTE_LINES: Final = 50
+
+# The checkout accepts at most 500 of one product.
+MAX_LINE_QUANTITY: Final = 500

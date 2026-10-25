@@ -29,15 +29,95 @@
   },
   "entity": {
     "sensor": {
-      "next_delivery": { "name": "Næsta afhending" },
-      "cart_items": { "name": "Vörur í körfu" },
-      "cart_total": { "name": "Samtala körfu" }
+      "next_delivery": {
+        "name": "Næsta afhending"
+      },
+      "cart_items": {
+        "name": "Vörur í körfu"
+      },
+      "cart_total": {
+        "name": "Samtala körfu"
+      }
     },
     "calendar": {
-      "deliveries": { "name": "Afhendingar" }
+      "deliveries": {
+        "name": "Afhendingar"
+      }
     },
     "todo": {
-      "shopping_list": { "name": "Innkaupalisti" }
+      "shopping_list": {
+        "name": "Innkaupalisti"
+      }
+    }
+  },
+  "services": {
+    "add_to_cart": {
+      "name": "Bæta í körfu",
+      "description": "Bætir vörum í körfu Krónunnar eftir vörunúmeri. Magnið bætist við það sem fyrir er.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "sku": {
+          "name": "Vörunúmer",
+          "description": "Vörunúmer (SKU), eins og í pöntunarlínum."
+        },
+        "quantity": {
+          "name": "Magn",
+          "description": "Hve mörgum á að bæta við."
+        },
+        "items": {
+          "name": "Vörur",
+          "description": "Margar vörur í einu: listi af {sku, quantity}."
+        }
+      }
+    },
+    "set_cart_quantity": {
+      "name": "Breyta magni í körfu",
+      "description": "Setur magn vöru í körfunni. 0 fjarlægir hana.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "sku": {
+          "name": "Vörunúmer",
+          "description": "Vörunúmer (SKU)."
+        },
+        "quantity": {
+          "name": "Magn",
+          "description": "Nýtt magn; 0 fjarlægir vöruna."
+        }
+      }
+    },
+    "get_orders": {
+      "name": "Sækja pantanir",
+      "description": "Nýlegar pantanir, nýjustu fyrst, til að panta aftur úr.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "limit": {
+          "name": "Fjöldi",
+          "description": "Hve margar pantanir á að sækja."
+        }
+      }
+    },
+    "get_order": {
+      "name": "Sækja pöntun",
+      "description": "Ein pöntun með vörum, magni, verði og myndum.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "order_token": {
+          "name": "Pöntunarauðkenni",
+          "description": "Auðkennið úr Sækja pantanir."
+        }
+      }
     }
   }
 }

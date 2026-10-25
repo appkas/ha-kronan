@@ -10,12 +10,12 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from .api import KronanApiClient, KronanAuthError, KronanError
-from .const import CLOSED_ORDER_STATUSES, DOMAIN, UPDATE_INTERVAL
+from .const import CLOSED_ORDER_STATUSES, DOMAIN, MAX_LINE_QUANTITY, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -160,6 +160,40 @@ class KronanCoordinator(DataUpdateCoordinator[KronanData]):
         except KronanError as err:
             raise UpdateFailed(str(err)) from err
         return KronanData(active_order=active, orders=orders, checkout=checkout, shopping_note=note)
+
+    async def async_change_cart(self, changes: dict[str, int], *, absolute: bool) -> None:
+        """Add to (or, with `absolute`, set) the quantity of each SKU; 0 removes it.
+
+        The cart is fetched fresh first and sent back whole, so edits made in the
+        Krónan app in the meantime are kept.
+        """
+        try:
+            checkout = await self.client.get_checkout() or {}
+            lines: dict[str, dict[str, Any]] = {}
+            for line in checkout.get("lines") or []:
+                sku = (line.get("product") or {}).get("sku")
+                if sku:
+                    lines[sku] = {
+                        "sku": sku,
+                        "quantity": int(line.get("quantity") or 0),
+                        "substitution": bool(line.get("substitution")),
+                    }
+            for sku, quantity in changes.items():
+                line = lines.setdefault(sku, {"sku": sku, "quantity": 0, "substitution": True})
+                line["quantity"] = quantity if absolute else line["quantity"] + quantity
+                line["quantity"] = max(0, min(MAX_LINE_QUANTITY, line["quantity"]))
+            new_checkout = await self.client.replace_checkout_lines(
+                [line for line in lines.values() if line["quantity"] > 0]
+            )
+        except KronanAuthError as err:
+            self.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(f"Krónan: {err}") from err
+        except KronanError as err:
+            raise HomeAssistantError(f"Krónan: {err}") from err
+        if new_checkout and self.data is not None:
+            self.async_set_updated_data(replace(self.data, checkout=new_checkout))
+        else:
+            await self.async_request_refresh()
 
     def set_shopping_note(self, note: dict[str, Any] | None) -> None:
         """Use the note a write call returned, so the list updates without a refetch."""

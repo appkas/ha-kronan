@@ -1,0 +1,65 @@
+add_to_cart:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    sku:
+      example: "100123"
+      selector:
+        text:
+    quantity:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 500
+          mode: box
+    items:
+      example: '[{"sku": "100123", "quantity": 2}]'
+      selector:
+        object:
+
+set_cart_quantity:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    sku:
+      required: true
+      example: "100123"
+      selector:
+        text:
+    quantity:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 500
+          mode: box
+
+get_orders:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    limit:
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 50
+          mode: box
+
+get_order:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    order_token:
+      required: true
+      selector:
+        text:

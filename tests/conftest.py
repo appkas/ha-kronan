@@ -78,8 +78,8 @@ CHECKOUT = [
     {
         "token": "33333333-3333-3333-3333-333333333333",
         "lines": [
-            {"id": 1, "quantity": 3, "product": {"sku": "300", "name": "Skyr"}, "total": 897, "price": 299},
-            {"id": 2, "quantity": 1, "product": {"sku": "400", "name": "Brauð"}, "total": 599, "price": 599},
+            {"id": 1, "quantity": 3, "product": {"sku": "300", "name": "Skyr", "thumbnail": "https://img/skyr.jpg"}, "total": 897, "price": 299, "substitution": False},
+            {"id": 2, "quantity": 1, "product": {"sku": "400", "name": "Brauð", "thumbnail": "https://img/braud.jpg"}, "total": 599, "price": 599, "substitution": True},
         ],
         "subtotal": 1496,
         "total": 1496,

@@ -29,15 +29,95 @@
   },
   "entity": {
     "sensor": {
-      "next_delivery": { "name": "Next delivery" },
-      "cart_items": { "name": "Cart items" },
-      "cart_total": { "name": "Cart total" }
+      "next_delivery": {
+        "name": "Next delivery"
+      },
+      "cart_items": {
+        "name": "Cart items"
+      },
+      "cart_total": {
+        "name": "Cart total"
+      }
     },
     "calendar": {
-      "deliveries": { "name": "Deliveries" }
+      "deliveries": {
+        "name": "Deliveries"
+      }
     },
     "todo": {
-      "shopping_list": { "name": "Shopping list" }
+      "shopping_list": {
+        "name": "Shopping list"
+      }
+    }
+  },
+  "services": {
+    "add_to_cart": {
+      "name": "Add to cart",
+      "description": "Add products to the Krónan cart by SKU. Quantities add to what is already there.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "sku": {
+          "name": "SKU",
+          "description": "Product SKU (as in order lines)."
+        },
+        "quantity": {
+          "name": "Quantity",
+          "description": "How many to add."
+        },
+        "items": {
+          "name": "Items",
+          "description": "Several products at once: a list of {sku, quantity}."
+        }
+      }
+    },
+    "set_cart_quantity": {
+      "name": "Set cart quantity",
+      "description": "Set how many of a product are in the cart. 0 removes it.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "sku": {
+          "name": "SKU",
+          "description": "Product SKU."
+        },
+        "quantity": {
+          "name": "Quantity",
+          "description": "New quantity; 0 removes the product."
+        }
+      }
+    },
+    "get_orders": {
+      "name": "Get orders",
+      "description": "Recent orders, most recent first, for reordering.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "How many orders to return."
+        }
+      }
+    },
+    "get_order": {
+      "name": "Get order",
+      "description": "One order with its products, quantities, prices and thumbnails.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "order_token": {
+          "name": "Order token",
+          "description": "The token from Get orders."
+        }
+      }
     }
   }
 }
