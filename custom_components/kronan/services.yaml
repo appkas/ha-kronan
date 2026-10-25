@@ -86,3 +86,47 @@ get_favorites:
           min: 1
           max: 100
           mode: box
+
+get_delivery_slots:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    address_id:
+      selector:
+        number:
+          min: 1
+          max: 999999999
+          mode: box
+
+reserve_delivery_slot:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    slot_id:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 999999999
+          mode: box
+    address_id:
+      selector:
+        number:
+          min: 1
+          max: 999999999
+          mode: box
+    return_bags:
+      default: false
+      selector:
+        boolean:
+
+add_cart_to_order:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan

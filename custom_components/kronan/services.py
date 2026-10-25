@@ -57,6 +57,16 @@ GET_FAVORITES_SCHEMA = vol.Schema(
         vol.Optional(ATTR_LIMIT, default=40): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
     }
 )
+GET_SLOTS_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Optional("address_id"): vol.Coerce(int)})
+RESERVE_SCHEMA = vol.Schema(
+    {
+        _ENTRY: cv.string,
+        vol.Required("slot_id"): vol.Coerce(int),
+        vol.Optional("address_id"): vol.Coerce(int),
+        vol.Optional("return_bags", default=False): cv.boolean,
+    }
+)
+ADD_TO_ORDER_SCHEMA = vol.Schema({_ENTRY: cv.string})
 GET_ORDER_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Required(ATTR_ORDER_TOKEN): cv.string})
 
 
@@ -120,6 +130,33 @@ def _favorite(stat: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _address(a: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": a.get("id"),
+        "street": a.get("streetAddress1"),
+        "postal_code": a.get("postalCode"),
+        "city": a.get("city"),
+        "default": bool(a.get("isDefaultShipping")),
+    }
+
+
+def _hhmm(value: Any) -> str | None:
+    return str(value)[:5] if value else None
+
+
+async def _default_address(entry: KronanConfigEntry, address_id: int | None) -> tuple[int, list[dict[str, Any]]]:
+    """The address asked for, else the default shipping address, else the only one."""
+    addresses = [_address(a) for a in await _read(entry, entry.runtime_data.client.get_addresses())]
+    if address_id is not None:
+        if not any(a["id"] == address_id for a in addresses):
+            raise ServiceValidationError(f"Address {address_id} is not one of this account's addresses")
+        return address_id, addresses
+    chosen = next((a for a in addresses if a["default"]), addresses[0] if len(addresses) == 1 else None)
+    if chosen is None:
+        raise ServiceValidationError("No default delivery address; pass address_id")
+    return chosen["id"], addresses
+
+
 def _order_summary(order: dict[str, Any]) -> dict[str, Any]:
     return {
         "token": order.get("token"),
@@ -162,7 +199,63 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         return {"products": [_favorite(s) for s in stats if not s.get("isIgnored") and (s.get("product") or {}).get("sku")]}
 
+    async def get_delivery_slots(call: ServiceCall) -> ServiceResponse:
+        entry = _entry(hass, call)
+        address_id, addresses = await _default_address(entry, call.data.get("address_id"))
+        days = await _read(entry, entry.runtime_data.client.get_delivery_slots(address_id))
+        return {
+            "address_id": address_id,
+            "addresses": addresses,
+            "days": [
+                {
+                    "date": day.get("day"),
+                    "slots": [
+                        {
+                            "slot_id": slot.get("slotId"),
+                            "start": _hhmm(slot.get("timeStart")),
+                            "end": _hhmm(slot.get("timeStop")),
+                            "available": slot.get("availabilityStatus"),
+                        }
+                        for slot in day.get("slots") or []
+                    ],
+                }
+                for day in days
+            ],
+        }
+
+    async def reserve_delivery_slot(call: ServiceCall) -> ServiceResponse:
+        entry = _entry(hass, call)
+        address_id, _ = await _default_address(entry, call.data.get("address_id"))
+        result = await _read(
+            entry,
+            entry.runtime_data.client.reserve_delivery(call.data["slot_id"], address_id, call.data["return_bags"]),
+        )
+        await entry.runtime_data.async_request_refresh()
+        return {
+            "order_token": result.get("orderToken"),
+            "date": result.get("deliveryDate"),
+            "start": _hhmm(result.get("timeStart")),
+            "end": _hhmm(result.get("timeStop")),
+            "fees": result.get("fees") or {},
+            "authorized_amount": result.get("authorizedAmount"),
+        }
+
+    async def add_cart_to_order(call: ServiceCall) -> ServiceResponse:
+        entry = _entry(hass, call)
+        result = await _read(entry, entry.runtime_data.client.add_checkout_to_order())
+        await entry.runtime_data.async_request_refresh()
+        return {"order_token": result.get("orderToken"), "authorized_amount": result.get("authorizedAmount")}
+
     hass.services.async_register(DOMAIN, "add_to_cart", add_to_cart, schema=ADD_TO_CART_SCHEMA)
+    hass.services.async_register(
+        DOMAIN, "get_delivery_slots", get_delivery_slots, schema=GET_SLOTS_SCHEMA, supports_response=SupportsResponse.ONLY
+    )
+    hass.services.async_register(
+        DOMAIN, "reserve_delivery_slot", reserve_delivery_slot, schema=RESERVE_SCHEMA, supports_response=SupportsResponse.OPTIONAL
+    )
+    hass.services.async_register(
+        DOMAIN, "add_cart_to_order", add_cart_to_order, schema=ADD_TO_ORDER_SCHEMA, supports_response=SupportsResponse.OPTIONAL
+    )
     hass.services.async_register(
         DOMAIN, "get_favorites", get_favorites, schema=GET_FAVORITES_SCHEMA, supports_response=SupportsResponse.ONLY
     )

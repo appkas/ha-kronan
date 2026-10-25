@@ -136,6 +136,52 @@
           "description": "Hve margar vörur á að sækja."
         }
       }
+    },
+    "get_delivery_slots": {
+      "name": "Sækja lausa afhendingartíma",
+      "description": "Næstu afhendingartímar á heimilisfang, og hve mikið pláss er eftir í hverjum.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "address_id": {
+          "name": "Heimilisfang",
+          "description": "Auðkenni heimilisfangs; sjálfgefið heimilisfang ef sleppt."
+        }
+      }
+    },
+    "reserve_delivery_slot": {
+      "name": "Bóka afhendingartíma",
+      "description": "Bókar afhendingartíma. Það býr til pöntun og heimilar greiðslu á kortinu sem er vistað hjá Krónunni.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "slot_id": {
+          "name": "Tími",
+          "description": "Auðkenni tíma úr Sækja lausa afhendingartíma."
+        },
+        "address_id": {
+          "name": "Heimilisfang",
+          "description": "Auðkenni heimilisfangs; sjálfgefið heimilisfang ef sleppt."
+        },
+        "return_bags": {
+          "name": "Skila pokum",
+          "description": "Bílstjórinn tekur við pokum úr fyrri sendingum."
+        }
+      }
+    },
+    "add_cart_to_order": {
+      "name": "Setja körfu í bókaða pöntun",
+      "description": "Setur vörurnar í körfunni í bókuðu afhendinguna. Heimilar nýju upphæðina á kortinu sem er vistað hjá Krónunni.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        }
+      }
     }
   },
   "selector": {

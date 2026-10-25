@@ -127,6 +127,26 @@ class KronanApiClient:
             "POST", "/api/v1/checkout/lines/", json={"lines": lines, "replace": True}
         )
 
+    async def get_addresses(self) -> list[dict[str, Any]]:
+        """Saved delivery addresses."""
+        return await self._request("GET", "/api/v1/addresses/") or []
+
+    async def get_delivery_slots(self, address_id: int) -> list[dict[str, Any]]:
+        """Days with delivery windows and how much room each has left (0 = full, -1 = unlimited)."""
+        return await self._request("POST", "/api/v1/slots/delivery/", json={"addressId": address_id}) or []
+
+    async def reserve_delivery(self, slot_id: int, address_id: int, return_bags: bool) -> dict[str, Any]:
+        """Book a delivery window. This creates an order and authorizes payment on the saved card."""
+        return await self._request(
+            "POST",
+            "/api/v1/slots/delivery/reserve/",
+            json={"slotId": slot_id, "addressId": address_id, "returnBags": return_bags},
+        )
+
+    async def add_checkout_to_order(self) -> dict[str, Any]:
+        """Move the cart into the booked order. Authorizes the new total on the saved card."""
+        return await self._request("POST", "/api/v1/checkout/add-to-order/")
+
     async def get_shopping_note(self) -> dict[str, Any] | None:
         """The shopping note (shopping list)."""
         return self._first(await self._request("GET", "/api/v1/shopping-notes/"))

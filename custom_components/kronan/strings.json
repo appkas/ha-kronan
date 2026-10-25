@@ -136,6 +136,52 @@
           "description": "How many products to return."
         }
       }
+    },
+    "get_delivery_slots": {
+      "name": "Get delivery slots",
+      "description": "Upcoming delivery windows for an address, with how much room each has left.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "address_id": {
+          "name": "Address",
+          "description": "Address id; the default delivery address if left out."
+        }
+      }
+    },
+    "reserve_delivery_slot": {
+      "name": "Book a delivery slot",
+      "description": "Books a delivery window. This creates an order and authorizes payment on the card saved in Krónan.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "slot_id": {
+          "name": "Slot",
+          "description": "Slot id from Get delivery slots."
+        },
+        "address_id": {
+          "name": "Address",
+          "description": "Address id; the default delivery address if left out."
+        },
+        "return_bags": {
+          "name": "Return bags",
+          "description": "The driver takes back bags from earlier deliveries."
+        }
+      }
+    },
+    "add_cart_to_order": {
+      "name": "Add cart to booked order",
+      "description": "Moves the cart into the booked delivery. Authorizes the new total on the card saved in Krónan.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        }
+      }
     }
   },
   "selector": {
