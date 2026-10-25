@@ -134,6 +134,10 @@
         "limit": {
           "name": "Limit",
           "description": "How many products to return."
+        },
+        "offset": {
+          "name": "Offset",
+          "description": "Skip this many products, to page through the list (use next_offset from the previous call)."
         }
       }
     },

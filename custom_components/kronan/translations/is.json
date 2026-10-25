@@ -134,6 +134,10 @@
         "limit": {
           "name": "Fjöldi",
           "description": "Hve margar vörur á að sækja."
+        },
+        "offset": {
+          "name": "Hliðrun",
+          "description": "Sleppa þessum fjölda vara, til að fletta listanum (notaðu next_offset úr fyrra kalli)."
         }
       }
     },

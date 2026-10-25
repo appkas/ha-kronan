@@ -55,6 +55,7 @@ GET_FAVORITES_SCHEMA = vol.Schema(
         _ENTRY: cv.string,
         vol.Optional("sort", default="most_frequent"): vol.In(PURCHASE_SORTS),
         vol.Optional(ATTR_LIMIT, default=40): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+        vol.Optional("offset", default=0): vol.All(vol.Coerce(int), vol.Range(min=0)),
     }
 )
 GET_SLOTS_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Optional("address_id"): vol.Coerce(int)})
@@ -194,10 +195,18 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def get_favorites(call: ServiceCall) -> ServiceResponse:
         entry = _entry(hass, call)
-        stats = await _read(
-            entry, entry.runtime_data.client.get_purchase_stats(sort=call.data["sort"], limit=call.data[ATTR_LIMIT])
+        limit, offset = call.data[ATTR_LIMIT], call.data["offset"]
+        stats, total = await _read(
+            entry,
+            entry.runtime_data.client.get_purchase_stats(sort=call.data["sort"], limit=limit, offset=offset),
         )
-        return {"products": [_favorite(s) for s in stats if not s.get("isIgnored") and (s.get("product") or {}).get("sku")]}
+        following = offset + len(stats)
+        return {
+            "products": [_favorite(s) for s in stats if not s.get("isIgnored") and (s.get("product") or {}).get("sku")],
+            "total": total,
+            # Where the next page starts, or None when this was the last one.
+            "next_offset": following if stats and following < total else None,
+        }
 
     async def get_delivery_slots(call: ServiceCall) -> ServiceResponse:
         entry = _entry(hass, call)

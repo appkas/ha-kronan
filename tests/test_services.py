@@ -127,9 +127,28 @@ async def test_get_favorites(hass: HomeAssistant, setup_integration, aioclient_m
     )
     result = await hass.services.async_call(DOMAIN, "get_favorites", {}, blocking=True, return_response=True)
     call = next(c for c in reversed(aioclient_mock.mock_calls) if "product-purchase-stats" in str(c[1]))
-    assert "sort=most_frequent" in str(call[1])
+    assert "sort=most_frequent" in str(call[1]) and "offset=0" in str(call[1])
+    # Two stats came back and the count says two: this was the only page.
+    assert result["total"] == 2
+    assert result["next_offset"] is None
     assert result["products"] == [
         {"sku": "100", "name": "Nýmjólk 1L", "thumbnail": "https://img/mjolk.jpg", "price": 199, "on_sale": True,
          "shortage": False, "purchase_count": 14, "average_quantity": 3.7, "last_quantity": 4,
          "last_purchase": "2026-10-20", "interval_days": 6.5}
     ]
+
+
+async def test_get_favorites_pages(hass: HomeAssistant, setup_integration, aioclient_mock) -> None:
+    page = [
+        {"id": i, "product": {"sku": str(i), "name": f"Vara {i}", "price": 100}, "purchaseCount": 50 - i, "isIgnored": False}
+        for i in range(40, 50)
+    ]
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/product-purchase-stats/", json={"count": 312, "results": page})
+    result = await hass.services.async_call(
+        DOMAIN, "get_favorites", {"limit": 10, "offset": 40}, blocking=True, return_response=True
+    )
+    call = next(c for c in reversed(aioclient_mock.mock_calls) if "product-purchase-stats" in str(c[1]))
+    assert "offset=40" in str(call[1]) and "limit=10" in str(call[1])
+    assert len(result["products"]) == 10
+    assert result["total"] == 312
+    assert result["next_offset"] == 50
