@@ -63,3 +63,26 @@ get_order:
       required: true
       selector:
         text:
+
+get_favorites:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: kronan
+    sort:
+      default: most_frequent
+      selector:
+        select:
+          options:
+            - most_frequent
+            - most_quantity
+            - recent
+          translation_key: purchase_sort
+    limit:
+      default: 40
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box

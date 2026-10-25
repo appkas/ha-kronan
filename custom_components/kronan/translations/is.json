@@ -118,6 +118,33 @@
           "description": "Auðkennið úr Sækja pantanir."
         }
       }
+    },
+    "get_favorites": {
+      "name": "Sækja oftast keyptu vörurnar",
+      "description": "Vörurnar sem þessi aðgangur kaupir oftast, með fjölda kaupa, magni og síðustu kaupum.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "sort": {
+          "name": "Röðun",
+          "description": "Oftast keyptar, mest magn eða nýlegast keyptar."
+        },
+        "limit": {
+          "name": "Fjöldi",
+          "description": "Hve margar vörur á að sækja."
+        }
+      }
+    }
+  },
+  "selector": {
+    "purchase_sort": {
+      "options": {
+        "most_frequent": "Oftast",
+        "most_quantity": "Mesta magn",
+        "recent": "Nýlegast"
+      }
     }
   }
 }

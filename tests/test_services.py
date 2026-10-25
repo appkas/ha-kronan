@@ -105,3 +105,31 @@ async def test_cart_error_is_raised(hass: HomeAssistant, setup_integration, aioc
 async def test_needs_sku_or_items(hass: HomeAssistant, setup_integration) -> None:
     with pytest.raises(Exception):
         await hass.services.async_call(DOMAIN, "add_to_cart", {"quantity": 2}, blocking=True)
+
+
+async def test_get_favorites(hass: HomeAssistant, setup_integration, aioclient_mock) -> None:
+    aioclient_mock.get(
+        f"{API_BASE_URL}/api/v1/product-purchase-stats/",
+        json={
+            "count": 2,
+            "results": [
+                {
+                    "id": 1,
+                    "product": {"sku": "100", "name": "Nýmjólk 1L", "thumbnail": "https://img/mjolk.jpg", "price": 219,
+                                "discountedPrice": 199, "onSale": True, "temporaryShortage": False},
+                    "purchaseCount": 14, "quantityPurchased": 52, "averagePurchaseQuantity": 3.7, "lastPurchaseQuantity": 4,
+                    "averagePurchaseIntervalDays": 6.5, "firstPurchaseDate": "2025-01-02", "lastPurchaseDate": "2026-10-20",
+                    "isIgnored": False,
+                },
+                {"id": 2, "product": {"sku": "200", "name": "Falið"}, "purchaseCount": 3, "isIgnored": True},
+            ],
+        },
+    )
+    result = await hass.services.async_call(DOMAIN, "get_favorites", {}, blocking=True, return_response=True)
+    call = next(c for c in reversed(aioclient_mock.mock_calls) if "product-purchase-stats" in str(c[1]))
+    assert "sort=most_frequent" in str(call[1])
+    assert result["products"] == [
+        {"sku": "100", "name": "Nýmjólk 1L", "thumbnail": "https://img/mjolk.jpg", "price": 199, "on_sale": True,
+         "shortage": False, "purchase_count": 14, "average_quantity": 3.7, "last_quantity": 4,
+         "last_purchase": "2026-10-20", "interval_days": 6.5}
+    ]

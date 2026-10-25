@@ -112,6 +112,15 @@ class KronanApiClient:
         """One order with its lines (name, quantity, price, thumbnail)."""
         return await self._request("GET", f"/api/v1/orders/{token}/")
 
+    async def get_purchase_stats(self, sort: str = "most_frequent", limit: int = 40) -> list[dict[str, Any]]:
+        """Products this account buys, with how often and how many (lifetime stats)."""
+        data = await self._request(
+            "GET", "/api/v1/product-purchase-stats/", params={"sort": sort, "limit": limit}
+        )
+        if isinstance(data, dict):
+            return data.get("results") or []
+        return data or []
+
     async def replace_checkout_lines(self, lines: list[dict[str, Any]]) -> dict[str, Any] | None:
         """Set the whole cart to `lines`. The API's `replace` defaults to true, so it is always sent."""
         return await self._request(

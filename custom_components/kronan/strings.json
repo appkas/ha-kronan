@@ -118,6 +118,33 @@
           "description": "The token from Get orders."
         }
       }
+    },
+    "get_favorites": {
+      "name": "Get most bought products",
+      "description": "Products this account buys most, with how often, how many and when last.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "sort": {
+          "name": "Sort",
+          "description": "Most often bought, most units bought, or most recently bought."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "How many products to return."
+        }
+      }
+    }
+  },
+  "selector": {
+    "purchase_sort": {
+      "options": {
+        "most_frequent": "Most often",
+        "most_quantity": "Most units",
+        "recent": "Most recent"
+      }
     }
   }
 }

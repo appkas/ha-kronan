@@ -49,6 +49,14 @@ ADD_TO_CART_SCHEMA = vol.All(
 )
 SET_QUANTITY_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Required(ATTR_SKU): cv.string, vol.Required(ATTR_QUANTITY): _QUANTITY})
 GET_ORDERS_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Optional(ATTR_LIMIT, default=10): vol.All(vol.Coerce(int), vol.Range(min=1, max=50))})
+PURCHASE_SORTS = ["most_frequent", "most_quantity", "recent"]
+GET_FAVORITES_SCHEMA = vol.Schema(
+    {
+        _ENTRY: cv.string,
+        vol.Optional("sort", default="most_frequent"): vol.In(PURCHASE_SORTS),
+        vol.Optional(ATTR_LIMIT, default=40): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+    }
+)
 GET_ORDER_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Required(ATTR_ORDER_TOKEN): cv.string})
 
 
@@ -95,6 +103,23 @@ def _order_line(line: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _favorite(stat: dict[str, Any]) -> dict[str, Any]:
+    product = stat.get("product") or {}
+    return {
+        "sku": product.get("sku"),
+        "name": product.get("name"),
+        "thumbnail": product.get("thumbnail") or None,
+        "price": product.get("discountedPrice") or product.get("price"),
+        "on_sale": bool(product.get("onSale")),
+        "shortage": bool(product.get("temporaryShortage")),
+        "purchase_count": stat.get("purchaseCount"),
+        "average_quantity": stat.get("averagePurchaseQuantity"),
+        "last_quantity": stat.get("lastPurchaseQuantity"),
+        "last_purchase": stat.get("lastPurchaseDate"),
+        "interval_days": stat.get("averagePurchaseIntervalDays"),
+    }
+
+
 def _order_summary(order: dict[str, Any]) -> dict[str, Any]:
     return {
         "token": order.get("token"),
@@ -130,7 +155,17 @@ def async_setup_services(hass: HomeAssistant) -> None:
         lines = [_order_line(line) for line in order.get("lines") or []]
         return {"order": _order_summary(order) | {"lines": lines}}
 
+    async def get_favorites(call: ServiceCall) -> ServiceResponse:
+        entry = _entry(hass, call)
+        stats = await _read(
+            entry, entry.runtime_data.client.get_purchase_stats(sort=call.data["sort"], limit=call.data[ATTR_LIMIT])
+        )
+        return {"products": [_favorite(s) for s in stats if not s.get("isIgnored") and (s.get("product") or {}).get("sku")]}
+
     hass.services.async_register(DOMAIN, "add_to_cart", add_to_cart, schema=ADD_TO_CART_SCHEMA)
+    hass.services.async_register(
+        DOMAIN, "get_favorites", get_favorites, schema=GET_FAVORITES_SCHEMA, supports_response=SupportsResponse.ONLY
+    )
     hass.services.async_register(DOMAIN, "set_cart_quantity", set_cart_quantity, schema=SET_QUANTITY_SCHEMA)
     hass.services.async_register(
         DOMAIN, "get_orders", get_orders, schema=GET_ORDERS_SCHEMA, supports_response=SupportsResponse.ONLY
