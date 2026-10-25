@@ -133,9 +133,19 @@ class CartTotalSensor(_CartSensor):
 
     @property
     def native_value(self) -> int | None:
-        return self._checkout.get("total")
+        checkout = self._checkout
+        if not checkout:
+            return None
+        # An empty cart still carries the bagging fee; it costs nothing until something is in it.
+        return checkout.get("total") if checkout.get("lines") else 0
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         # The line list lives on the item count sensor; keep this one small.
-        return {}
+        checkout = self._checkout
+        return {
+            "subtotal": checkout.get("subtotal"),
+            "bagging_fee": checkout.get("baggingFee"),
+            "service_fee": checkout.get("serviceFee"),
+            "shipping_fee": checkout.get("shippingFee"),
+        }

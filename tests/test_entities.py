@@ -60,13 +60,15 @@ async def test_no_active_order(hass: HomeAssistant, aioclient_mock, config_entry
     aioclient_mock.get(f"{API_BASE_URL}/api/v1/me/", json=ME)
     aioclient_mock.get(f"{API_BASE_URL}/api/v1/orders/currently-active/", status=404)
     aioclient_mock.get(f"{API_BASE_URL}/api/v1/orders/", json={"count": 0, "results": []})
-    aioclient_mock.get(f"{API_BASE_URL}/api/v1/checkout/", json=[{"token": "c", "lines": [], "subtotal": 0, "total": 0, "shippingFee": 0, "shippingFeeCutoff": 15000}])
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/checkout/", json=[{"token": "c", "lines": [], "subtotal": 0, "total": 199, "baggingFee": 199, "shippingFee": 0, "shippingFeeCutoff": 19900}])
     aioclient_mock.get(f"{API_BASE_URL}/api/v1/shopping-notes/", json=[{"token": "n", "name": "", "lines": []}])
     config_entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get("sensor.kronan_next_delivery").state == "unknown"
     assert hass.states.get("sensor.kronan_cart_items").state == "0"
+    # The bagging fee alone does not count as a cart total.
+    assert float(hass.states.get("sensor.kronan_cart_total").state) == 0
     assert hass.states.get("calendar.kronan_deliveries").state == "off"
     assert hass.states.get("todo.kronan_shopping_list").state == "0"
 
