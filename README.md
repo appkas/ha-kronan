@@ -16,6 +16,19 @@ Not affiliated with or endorsed by Krónan. The Krónan name and logo in `custom
 | `calendar.kronan_deliveries` | Your deliveries and pickups as calendar events |
 | `todo.kronan_shopping_list` | The shopping note from the Krónan app as a to-do list. Add, rename, tick off and remove items in Home Assistant or with Assist, and they change in the Krónan app too |
 
+### Services
+
+| Service | What it does |
+|---|---|
+| `kronan.add_to_cart` / `kronan.set_cart_quantity` | Add products by SKU, or set a quantity (0 removes). The cart is fetched fresh and sent back whole, so edits made in the Krónan app are kept. |
+| `kronan.get_orders` / `kronan.get_order` | Recent orders, and one order's products with thumbnails (fee lines flagged), for reordering. |
+| `kronan.get_favorites` | Most bought products, with purchase count, usual quantity, last purchase and average days between buys. |
+| `kronan.get_delivery_slots` | Upcoming delivery windows for your default address, with remaining capacity. |
+| `kronan.reserve_delivery_slot` | **Books a delivery window.** This creates an order and authorizes payment on the card saved in Krónan. |
+| `kronan.add_cart_to_order` | **Moves the cart into the booked order** and authorizes the new total. |
+
+Booking and adding to an order spend real money; put a confirmation in front of them in any dashboard or automation. The token needs the matching permissions in Krónan (for example reading addresses to look up delivery slots); a missing permission shows up as a clear error, not as an invalid token.
+
 The integration polls every 5 minutes, four requests each time. That is well inside the API limit of 200 requests per 200 seconds.
 
 ## Installation
