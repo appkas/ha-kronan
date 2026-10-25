@@ -186,6 +186,24 @@
           "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
         }
       }
+    },
+    "search_products": {
+      "name": "Leita að vörum",
+      "description": "Leitar í vöruúrvali heimsendingar Krónunnar. Hverri vöru fylgir hve oft þessi aðgangur hefur keypt hana.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Aðgangur",
+          "description": "Þarf aðeins ef fleiri en einn Krónuaðgangur er uppsettur."
+        },
+        "query": {
+          "name": "Leitarorð",
+          "description": "Hverju á að leita að."
+        },
+        "limit": {
+          "name": "Fjöldi",
+          "description": "Hámarksfjöldi vara."
+        }
+      }
     }
   },
   "selector": {

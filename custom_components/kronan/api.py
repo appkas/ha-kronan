@@ -131,6 +131,14 @@ class KronanApiClient:
         results = data or []
         return results, len(results)
 
+    async def search_products(self, query: str, page: int = 1, page_size: int = 50) -> dict[str, Any]:
+        """Products for home delivery matching `query`, each with this account's purchase stats if any."""
+        return await self._request(
+            "POST",
+            "/api/v1/products/search/",
+            json={"query": query, "page": page, "pageSize": page_size, "includePurchaseHistory": True},
+        ) or {}
+
     async def replace_checkout_lines(self, lines: list[dict[str, Any]]) -> dict[str, Any] | None:
         """Set the whole cart to `lines`. The API's `replace` defaults to true, so it is always sent."""
         return await self._request(
