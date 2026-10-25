@@ -69,7 +69,7 @@
         },
         "items": {
           "name": "Vörur",
-          "description": "Margar vörur í einu: listi af {sku, quantity}."
+          "description": "Margar vörur í einu: listi þar sem hver vara hefur sku og quantity."
         }
       }
     },

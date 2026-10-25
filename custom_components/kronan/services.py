@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import voluptuous as vol
@@ -74,6 +75,26 @@ async def _read(entry: KronanConfigEntry, coro: Any) -> Any:
         raise HomeAssistantError(f"Krónan: {err}") from err
 
 
+# Order lines are named "100217418 - Hansaplast plástrar"; the SKU is already a field.
+_SKU_PREFIX = re.compile(r"^\s*\d+\s*-\s*")
+# Service, bag and delivery fees are order lines too, but nothing to reorder.
+_FEE = re.compile(r"gjald\s*$", re.IGNORECASE)
+
+
+def _order_line(line: dict[str, Any]) -> dict[str, Any]:
+    name = _SKU_PREFIX.sub("", line.get("productName") or "")
+    return {
+        "sku": line.get("sku"),
+        "name": name,
+        "quantity": line.get("quantity"),
+        "unit_price": line.get("unitPrice"),
+        "total": line.get("total"),
+        "thumbnail": line.get("thumbnail") or None,
+        "substitution_for": line.get("substitutionForLineId"),
+        "fee": bool(_FEE.search(name)) and not line.get("thumbnail"),
+    }
+
+
 def _order_summary(order: dict[str, Any]) -> dict[str, Any]:
     return {
         "token": order.get("token"),
@@ -106,18 +127,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def get_order(call: ServiceCall) -> ServiceResponse:
         entry = _entry(hass, call)
         order = await _read(entry, entry.runtime_data.client.get_order(call.data[ATTR_ORDER_TOKEN]))
-        lines = [
-            {
-                "sku": line.get("sku"),
-                "name": line.get("productName"),
-                "quantity": line.get("quantity"),
-                "unit_price": line.get("unitPrice"),
-                "total": line.get("total"),
-                "thumbnail": line.get("thumbnail"),
-                "substitution_for": line.get("substitutionForLineId"),
-            }
-            for line in order.get("lines") or []
-        ]
+        lines = [_order_line(line) for line in order.get("lines") or []]
         return {"order": _order_summary(order) | {"lines": lines}}
 
     hass.services.async_register(DOMAIN, "add_to_cart", add_to_cart, schema=ADD_TO_CART_SCHEMA)

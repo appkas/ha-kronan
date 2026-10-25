@@ -78,8 +78,10 @@ async def test_get_order(hass: HomeAssistant, setup_integration, aioclient_mock)
             "deliveryDate": "2026-10-20",
             "total": 18500,
             "lines": [
-                {"id": 9, "productName": "Nýmjólk 1L", "sku": "100", "quantity": 4, "unitPrice": 219, "total": 876,
+                {"id": 9, "productName": "100 - Nýmjólk 1L", "sku": "100", "quantity": 4, "unitPrice": 219, "total": 876,
                  "thumbnail": "https://img/mjolk.jpg", "substitutionForLineId": None, "isMutable": False},
+                {"id": 10, "productName": "100258326 - Þjónustugjald", "sku": "100258326", "quantity": 1, "unitPrice": 590,
+                 "total": 590, "thumbnail": "", "substitutionForLineId": None, "isMutable": False},
             ],
         },
     )
@@ -88,7 +90,9 @@ async def test_get_order(hass: HomeAssistant, setup_integration, aioclient_mock)
     )
     assert result["order"]["lines"] == [
         {"sku": "100", "name": "Nýmjólk 1L", "quantity": 4, "unit_price": 219, "total": 876,
-         "thumbnail": "https://img/mjolk.jpg", "substitution_for": None}
+         "thumbnail": "https://img/mjolk.jpg", "substitution_for": None, "fee": False},
+        {"sku": "100258326", "name": "Þjónustugjald", "quantity": 1, "unit_price": 590, "total": 590,
+         "thumbnail": None, "substitution_for": None, "fee": True},
     ]
 
 
