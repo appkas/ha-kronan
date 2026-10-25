@@ -1,0 +1,12 @@
+{
+  "domain": "kronan",
+  "name": "Krónan Snjallverslun",
+  "codeowners": ["@appkas"],
+  "config_flow": true,
+  "documentation": "https://github.com/appkas/ha-kronan",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/appkas/ha-kronan/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

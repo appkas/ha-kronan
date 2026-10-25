@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Krónan Snjallverslun",
+        "description": "Create an access token in Krónan Snjallverslun under your user settings (you need to sign in with Auðkenni). Tokens start with `act_`.",
+        "data": {
+          "access_token": "Access token"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Krónan access token",
+        "description": "The access token no longer works. Create a new one in Krónan Snjallverslun and paste it here.",
+        "data": {
+          "access_token": "Access token"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Krónan rejected the access token.",
+      "cannot_connect": "Could not reach the Krónan API.",
+      "unknown": "Unexpected response from the Krónan API."
+    },
+    "abort": {
+      "already_configured": "This Krónan account is already set up.",
+      "reauth_successful": "The access token was updated.",
+      "wrong_account": "This token belongs to a different Krónan account."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_delivery": { "name": "Next delivery" },
+      "cart_items": { "name": "Cart items" },
+      "cart_total": { "name": "Cart total" }
+    },
+    "calendar": {
+      "deliveries": { "name": "Deliveries" }
+    },
+    "todo": {
+      "shopping_list": { "name": "Shopping list" }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Krónan Snjallverslun",
+        "description": "Búðu til aðgangslykil í Snjallverslun Krónunnar undir notandastillingum (innskráning með Auðkenni). Lykillinn byrjar á `act_`.",
+        "data": {
+          "access_token": "Aðgangslykill"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Aðgangslykill Krónunnar",
+        "description": "Aðgangslykillinn virkar ekki lengur. Búðu til nýjan í Snjallverslun Krónunnar og límdu hann hér.",
+        "data": {
+          "access_token": "Aðgangslykill"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Krónan hafnaði aðgangslyklinum.",
+      "cannot_connect": "Náði ekki sambandi við API Krónunnar.",
+      "unknown": "Óvænt svar frá API Krónunnar."
+    },
+    "abort": {
+      "already_configured": "Þessi Krónuaðgangur er þegar uppsettur.",
+      "reauth_successful": "Aðgangslykillinn var uppfærður.",
+      "wrong_account": "Þessi lykill tilheyrir öðrum Krónuaðgangi."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "next_delivery": { "name": "Næsta afhending" },
+      "cart_items": { "name": "Vörur í körfu" },
+      "cart_total": { "name": "Samtala körfu" }
+    },
+    "calendar": {
+      "deliveries": { "name": "Afhendingar" }
+    },
+    "todo": {
+      "shopping_list": { "name": "Innkaupalisti" }
+    }
+  }
+}

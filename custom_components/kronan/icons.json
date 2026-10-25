@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "sensor": {
+      "next_delivery": { "default": "mdi:truck-delivery-outline" },
+      "cart_items": { "default": "mdi:cart-outline" },
+      "cart_total": { "default": "mdi:cash" }
+    },
+    "calendar": {
+      "deliveries": { "default": "mdi:truck-delivery-outline" }
+    },
+    "todo": {
+      "shopping_list": { "default": "mdi:format-list-checks" }
+    }
+  }
+}
