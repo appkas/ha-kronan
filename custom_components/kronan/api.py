@@ -19,6 +19,10 @@ class KronanAuthError(KronanError):
     """The access token was rejected."""
 
 
+class KronanPermissionError(KronanError):
+    """The token works but may not use this endpoint (403)."""
+
+
 class KronanConnectionError(KronanError):
     """The API could not be reached."""
 
@@ -64,8 +68,10 @@ class KronanApiClient:
                 json=json,
                 timeout=REQUEST_TIMEOUT,
             ) as resp:
-                if resp.status in (401, 403):
-                    raise KronanAuthError(f"Access token rejected ({resp.status})")
+                if resp.status == 401:
+                    raise KronanAuthError("Access token rejected (401)")
+                if resp.status == 403:
+                    raise KronanPermissionError(f"The access token may not use {path} (403)")
                 if resp.status == 429:
                     raise KronanRateLimitError("Rate limited by the Krónan API")
                 if resp.status == 404 and allow_404:

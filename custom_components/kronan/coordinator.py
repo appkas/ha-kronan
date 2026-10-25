@@ -14,7 +14,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .api import KronanApiClient, KronanAuthError, KronanError
+from .api import KronanApiClient, KronanAuthError, KronanError, KronanPermissionError
 from .const import CLOSED_ORDER_STATUSES, DOMAIN, MAX_LINE_QUANTITY, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
@@ -148,12 +148,20 @@ class KronanCoordinator(DataUpdateCoordinator[KronanData]):
         self.client = client
 
     async def _async_update_data(self) -> KronanData:
+        async def allowed(coro: Any, default: Any) -> Any:
+            # A token may lack rights for one resource; show the rest instead of failing them all.
+            try:
+                return await coro
+            except KronanPermissionError as err:
+                _LOGGER.debug("Skipping a resource this token may not read: %s", err)
+                return default
+
         try:
             active, orders, checkout, note = await asyncio.gather(
-                self.client.get_active_order(),
-                self.client.get_orders(),
-                self.client.get_checkout(),
-                self.client.get_shopping_note(),
+                allowed(self.client.get_active_order(), None),
+                allowed(self.client.get_orders(), []),
+                allowed(self.client.get_checkout(), None),
+                allowed(self.client.get_shopping_note(), None),
             )
         except KronanAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err

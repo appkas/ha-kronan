@@ -73,3 +73,13 @@ async def test_add_cart_to_order(hass: HomeAssistant, setup_integration, aioclie
     aioclient_mock.post(f"{API_BASE_URL}/api/v1/checkout/add-to-order/", json={"orderToken": "abc", "authorizedAmount": 23880})
     result = await hass.services.async_call(DOMAIN, "add_cart_to_order", {}, blocking=True, return_response=True)
     assert result == {"order_token": "abc", "authorized_amount": 23880}
+
+
+async def test_forbidden_does_not_ask_for_a_new_token(hass: HomeAssistant, setup_integration, aioclient_mock) -> None:
+    from homeassistant.exceptions import HomeAssistantError
+
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/addresses/", status=403)
+    with pytest.raises(HomeAssistantError, match="403"):
+        await hass.services.async_call(DOMAIN, "get_delivery_slots", {}, blocking=True, return_response=True)
+    await hass.async_block_till_done()
+    assert not [f for f in hass.config_entries.flow.async_progress() if f["context"]["source"] == "reauth"]

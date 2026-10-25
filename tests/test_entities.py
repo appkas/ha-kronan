@@ -98,3 +98,20 @@ async def test_entity_ids(hass: HomeAssistant, setup_integration) -> None:
         "sensor.kronan_next_delivery",
         "todo.kronan_shopping_list",
     ]
+
+
+async def test_one_forbidden_resource_keeps_the_rest(hass: HomeAssistant, aioclient_mock, config_entry, freezer) -> None:
+    await hass.config.async_set_time_zone("Atlantic/Reykjavik")
+    freezer.move_to("2026-10-26T12:00:00+00:00")
+    from .conftest import ACTIVE_ORDER, CHECKOUT, ORDERS
+
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/orders/currently-active/", json=ACTIVE_ORDER)
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/orders/", json=ORDERS)
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/checkout/", json=CHECKOUT)
+    aioclient_mock.get(f"{API_BASE_URL}/api/v1/shopping-notes/", status=403)
+    config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("sensor.kronan_cart_items").state == "4"
+    assert hass.states.get("todo.kronan_shopping_list").state == "0"

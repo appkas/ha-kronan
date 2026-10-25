@@ -13,7 +13,14 @@ from homeassistant.const import CONF_ACCESS_TOKEN
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
 
-from .api import KronanApiClient, KronanAuthError, KronanConnectionError, KronanError, normalize_token
+from .api import (
+    KronanApiClient,
+    KronanAuthError,
+    KronanConnectionError,
+    KronanError,
+    KronanPermissionError,
+    normalize_token,
+)
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +39,7 @@ class KronanConfigFlow(ConfigFlow, domain=DOMAIN):
         client = KronanApiClient(async_get_clientsession(self.hass), token)
         try:
             return await client.get_me(), {}
-        except KronanAuthError:
+        except (KronanAuthError, KronanPermissionError):
             return None, {"base": "invalid_auth"}
         except KronanConnectionError:
             return None, {"base": "cannot_connect"}
