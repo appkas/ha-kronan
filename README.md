@@ -4,7 +4,7 @@
 
 An unofficial Home Assistant integration for [Krónan](https://kronan.is) Snjallverslun, the online store of the Icelandic grocery chain. It uses Krónan's public API (in beta) with a personal access token.
 
-Not affiliated with or endorsed by Krónan.
+Not affiliated with or endorsed by Krónan. The Krónan name and logo in `custom_components/kronan/brand/` belong to Krónan and are used only to identify the service in Home Assistant; they are not covered by this repository's license.
 
 ## What you get
 
@@ -53,4 +53,4 @@ When a token expires or is revoked, Home Assistant asks for a new one.
 
 ## License
 
-MIT
+MIT, except the Krónan logo files in `custom_components/kronan/brand/`, which belong to Krónan.
