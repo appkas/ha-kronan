@@ -68,6 +68,13 @@ RESERVE_SCHEMA = vol.Schema(
     }
 )
 ADD_TO_ORDER_SCHEMA = vol.Schema({_ENTRY: cv.string})
+SEARCH_SCHEMA = vol.Schema(
+    {
+        _ENTRY: cv.string,
+        vol.Required("query"): vol.All(cv.string, vol.Length(min=1, max=64)),
+        vol.Optional(ATTR_LIMIT, default=60): vol.All(vol.Coerce(int), vol.Range(min=1, max=200)),
+    }
+)
 GET_ORDER_SCHEMA = vol.Schema({_ENTRY: cv.string, vol.Required(ATTR_ORDER_TOKEN): cv.string})
 
 
@@ -156,6 +163,20 @@ async def _default_address(entry: KronanConfigEntry, address_id: int | None) -> 
     if chosen is None:
         raise ServiceValidationError("No default delivery address; pass address_id")
     return chosen["id"], addresses
+
+
+def _search_hit(hit: dict[str, Any]) -> dict[str, Any]:
+    history = hit.get("purchaseHistory") or {}
+    return {
+        "sku": hit.get("sku"),
+        "name": hit.get("name"),
+        "thumbnail": hit.get("thumbnail") or None,
+        "price": hit.get("price"),
+        "shortage": bool(hit.get("temporaryShortage")),
+        "purchase_count": history.get("purchaseCount") or 0,
+        "average_quantity": history.get("averagePurchaseQuantity"),
+        "last_purchase": history.get("lastPurchaseDate"),
+    }
 
 
 def _order_summary(order: dict[str, Any]) -> dict[str, Any]:
@@ -255,7 +276,27 @@ def async_setup_services(hass: HomeAssistant) -> None:
         await entry.runtime_data.async_request_refresh()
         return {"order_token": result.get("orderToken"), "authorized_amount": result.get("authorizedAmount")}
 
+    async def search_products(call: ServiceCall) -> ServiceResponse:
+        """Search in Krónan's relevance order, with this account's purchase stats on each product."""
+        entry = _entry(hass, call)
+        query, limit = call.data["query"], call.data[ATTR_LIMIT]
+        hits: list[dict[str, Any]] = []
+        total, page = 0, 1
+        while len(hits) < limit:
+            result = await _read(
+                entry, entry.runtime_data.client.search_products(query, page=page, page_size=min(50, limit))
+            )
+            hits.extend(result.get("hits") or [])
+            total = int(result.get("count") or len(hits))
+            if not result.get("hasNextPage") or not result.get("hits"):
+                break
+            page += 1
+        return {"products": [_search_hit(h) for h in hits[:limit] if h.get("sku")], "total": total}
+
     hass.services.async_register(DOMAIN, "add_to_cart", add_to_cart, schema=ADD_TO_CART_SCHEMA)
+    hass.services.async_register(
+        DOMAIN, "search_products", search_products, schema=SEARCH_SCHEMA, supports_response=SupportsResponse.ONLY
+    )
     hass.services.async_register(
         DOMAIN, "get_delivery_slots", get_delivery_slots, schema=GET_SLOTS_SCHEMA, supports_response=SupportsResponse.ONLY
     )

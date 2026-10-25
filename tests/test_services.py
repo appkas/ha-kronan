@@ -152,3 +152,51 @@ async def test_get_favorites_pages(hass: HomeAssistant, setup_integration, aiocl
     assert len(result["products"]) == 10
     assert result["total"] == 312
     assert result["next_offset"] == 50
+
+
+SEARCH_URL = f"{API_BASE_URL}/api/v1/products/search/"
+
+
+def _hit(sku: str, name: str, bought: int | None) -> dict:
+    return {
+        "sku": sku, "name": name, "price": 299, "thumbnail": f"https://img/{sku}.jpg", "temporaryShortage": False,
+        "purchaseHistory": {"purchaseCount": bought, "averagePurchaseQuantity": 2.0, "lastPurchaseDate": "2026-10-20"}
+        if bought else None,
+    }
+
+
+async def test_search_products(hass: HomeAssistant, setup_integration, aioclient_mock) -> None:
+    aioclient_mock.post(
+        SEARCH_URL,
+        json={"count": 2, "page": 1, "pageCount": 1, "hasNextPage": False,
+              "hits": [_hit("1", "Nýmjólk 1L", None), _hit("2", "Fjörmjólk laktósalaus", 175)]},
+    )
+    result = await hass.services.async_call(DOMAIN, "search_products", {"query": "mjólk"}, blocking=True, return_response=True)
+    body = next(c[2] for c in reversed(aioclient_mock.mock_calls) if str(c[1]).endswith("/products/search/"))
+    assert body == {"query": "mjólk", "page": 1, "pageSize": 50, "includePurchaseHistory": True}
+    assert result["total"] == 2
+    # Krónan's order is kept; the dashboard decides how to group.
+    assert [p["name"] for p in result["products"]] == ["Nýmjólk 1L", "Fjörmjólk laktósalaus"]
+    assert result["products"][1] == {
+        "sku": "2", "name": "Fjörmjólk laktósalaus", "thumbnail": "https://img/2.jpg", "price": 299, "shortage": False,
+        "purchase_count": 175, "average_quantity": 2.0, "last_purchase": "2026-10-20",
+    }
+    assert result["products"][0]["purchase_count"] == 0
+
+
+async def test_search_reads_pages_up_to_the_limit(hass: HomeAssistant, setup_integration, aioclient_mock) -> None:
+    calls = []
+
+    async def respond(method, url, data):
+        calls.append(data["page"])
+        hits = [_hit(f"{data['page']}-{i}", f"Ostur {i}", None) for i in range(50)]
+        from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
+        return AiohttpClientMockResponse(method, url, json={"count": 400, "hasNextPage": True, "hits": hits})
+
+    aioclient_mock.post(SEARCH_URL, side_effect=respond)
+    result = await hass.services.async_call(
+        DOMAIN, "search_products", {"query": "ostur", "limit": 100}, blocking=True, return_response=True
+    )
+    assert calls == [1, 2]
+    assert len(result["products"]) == 100
+    assert result["total"] == 400

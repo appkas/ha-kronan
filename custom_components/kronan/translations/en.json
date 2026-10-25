@@ -186,6 +186,24 @@
           "description": "Only needed when several Krónan accounts are set up."
         }
       }
+    },
+    "search_products": {
+      "name": "Search products",
+      "description": "Search Krónan's home delivery selection. Each product includes how often this account has bought it.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Account",
+          "description": "Only needed when several Krónan accounts are set up."
+        },
+        "query": {
+          "name": "Query",
+          "description": "What to search for."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "How many products to return at most."
+        }
+      }
     }
   },
   "selector": {
